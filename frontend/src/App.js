@@ -10,31 +10,50 @@ const Dashboard = () => {
   const [status, setStatus] = useState('Connecting...');
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8000/ws/energy');
-    socket.onopen = () => setStatus('Live');
+    const BACKEND_WS_URL = 'wss://smart-energy-api-9f0y.onrender.com/ws/energy';
+    const socket = new WebSocket(BACKEND_WS_URL);
+
+    socket.onopen = () => {
+      console.log("Connected to Render Backend");
+      setStatus('Live');
+    };
     
     socket.onmessage = (event) => {
       const payload = JSON.parse(event.data);
       
+      // Safety: Ensure numbers are treated as numbers
+      const actualVal = Number(payload.actual) || 0;
+      const predictedVal = Number(payload.predicted) || 0;
+
       setCurrentStats({
-        actual: payload.actual.toFixed(2),
-        predicted: payload.predicted.toFixed(2),
-        voltage: payload.voltage.toFixed(1),
+        actual: actualVal.toFixed(2),
+        predicted: predictedVal.toFixed(2),
+        voltage: (Number(payload.voltage) || 0).toFixed(1),
         is_anomaly: payload.is_anomaly,
         cost_hour: payload.cost_hour
       });
 
       setData(prevData => {
         const newData = [...prevData, {
-          time: payload.timestamp.split(' ')[1], 
-          actual: payload.actual,
-          predicted: payload.predicted
+          time: payload.timestamp ? payload.timestamp.split(' ')[1] : new Date().toLocaleTimeString(), 
+          actual: actualVal,
+          predicted: predictedVal
         }];
-        return newData.slice(-20);
+        // Keeping the last 30 points for a better visual flow
+        return newData.slice(-30);
       });
     };
 
-    socket.onclose = () => setStatus('Disconnected');
+    socket.onclose = () => {
+      console.log("Disconnected from Render Backend");
+      setStatus('Disconnected');
+    };
+
+    socket.onerror = (err) => {
+      console.error("WebSocket Error:", err);
+      setStatus('Error');
+    };
+
     return () => socket.close();
   }, []);
 
@@ -85,7 +104,9 @@ const Dashboard = () => {
         </div>
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-green-500 transition-all">
           <div className="flex items-center gap-4 text-slate-400 mb-2"><DollarSign size={20}/> Efficiency Index</div>
-          <div className="text-3xl font-mono text-green-400">{currentStats.predicted > 0 ? ((currentStats.predicted / currentStats.actual) * 100).toFixed(0) : 100}%</div>
+          <div className="text-3xl font-mono text-green-400">
+            {currentStats.actual > 0 ? ((currentStats.predicted / currentStats.actual) * 100).toFixed(0) : 100}%
+          </div>
         </div>
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-yellow-500 transition-all">
           <div className="flex items-center gap-4 text-slate-400 mb-2"><ShieldAlert size={20}/> Line Voltage</div>
@@ -117,7 +138,7 @@ const Dashboard = () => {
               strokeWidth={4} 
               dot={currentStats.is_anomaly} 
               name="Actual (kW)" 
-              animationDuration={300}
+              isAnimationActive={false}
             />
             <Line 
               type="monotone" 
@@ -127,7 +148,7 @@ const Dashboard = () => {
               strokeDasharray="5 5" 
               dot={false} 
               name="Predicted (kW)" 
-              animationDuration={300}
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>
