@@ -1,11 +1,19 @@
 import os
 from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from app.simulator import EnergySimulator
 from app.model_loader import predict_next_hour
 import asyncio
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Isse sabhi sources allow ho jayenge
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Constants for EMS Features
 ELECTRICITY_RATE = 0.15  # $ per kWh
 ANOMALY_THRESHOLD = 0.25 # 25% deviation triggers alert
