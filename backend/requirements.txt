@@ -1,6 +1,8 @@
 fastapi
 uvicorn
-tensorflow
+tensorflow-cpu
 pandas
 numpy
 python-multipart
+joblib
+scikit-learn
