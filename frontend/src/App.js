@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
-import { Activity, Zap, ShieldAlert, Clock, DollarSign, TrendingUp } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Activity, Zap, ShieldAlert, DollarSign, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
