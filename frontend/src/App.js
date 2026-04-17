@@ -9,53 +9,32 @@ const Dashboard = () => {
   });
   const [status, setStatus] = useState('Connecting...');
 
-  useEffect(() => {
-    const BACKEND_WS_URL = 'wss://smart-energy-api-9f0y.onrender.com/ws/energy';
-    const socket = new WebSocket(BACKEND_WS_URL);
+useEffect(() => {
+    let socket;
+    const connect = () => {
+        socket = new WebSocket('wss://smart-energy-api-9f0y.onrender.com/ws/energy');
+        
+        socket.onopen = () => setStatus('Live');
+        
+        socket.onclose = () => {
+            setStatus('Disconnected. Retrying...');
+            setTimeout(connect, 3000); // 3 seconds baad phir se koshish karega
+        };
 
-    socket.onopen = () => {
-      console.log("Connected to Render Backend");
-      setStatus('Live');
-    };
-    
-    socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-      
-      // Safety: Ensure numbers are treated as numbers
-      const actualVal = Number(payload.actual) || 0;
-      const predictedVal = Number(payload.predicted) || 0;
+        socket.onerror = (err) => {
+            console.error("Socket Error:", err);
+            socket.close();
+        };
 
-      setCurrentStats({
-        actual: actualVal.toFixed(2),
-        predicted: predictedVal.toFixed(2),
-        voltage: (Number(payload.voltage) || 0).toFixed(1),
-        is_anomaly: payload.is_anomaly,
-        cost_hour: payload.cost_hour
-      });
-
-      setData(prevData => {
-        const newData = [...prevData, {
-          time: payload.timestamp ? payload.timestamp.split(' ')[1] : new Date().toLocaleTimeString(), 
-          actual: actualVal,
-          predicted: predictedVal
-        }];
-        // Keeping the last 30 points for a better visual flow
-        return newData.slice(-30);
-      });
+        socket.onmessage = (event) => {
+            const payload = JSON.parse(event.data);
+            // ... aapka baaki ka logic
+        };
     };
 
-    socket.onclose = () => {
-      console.log("Disconnected from Render Backend");
-      setStatus('Disconnected');
-    };
-
-    socket.onerror = (err) => {
-      console.error("WebSocket Error:", err);
-      setStatus('Error');
-    };
-
+    connect();
     return () => socket.close();
-  }, []);
+}, []);
 
   return (
     <div className={`min-h-screen transition-colors duration-700 ${currentStats.is_anomaly ? 'bg-red-950' : 'bg-slate-900'} text-white p-8 font-sans`}>
