@@ -1,8 +1,6 @@
 fastapi
 uvicorn
-tensorflow-cpu
 pandas
 numpy
-python-multipart
-joblib
 scikit-learn
+tensorflow==2.15.0
