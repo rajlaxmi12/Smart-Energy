@@ -12,7 +12,7 @@ const Dashboard = () => {
 useEffect(() => {
     let socket;
     const connect = () => {
-        socket = new WebSocket('wss://smart-energy-api-9f0y.onrender.com/ws/energy');
+        socket = new WebSocket('https://smart-energy-vwp2.onrender.com/');
         
         socket.onopen = () => setStatus('Live');
         
