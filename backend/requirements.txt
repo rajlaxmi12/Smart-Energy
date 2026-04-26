@@ -6,3 +6,6 @@ numpy
 python-multipart
 joblib
 scikit-learn
+flask
+gunicorn
+pyserial
